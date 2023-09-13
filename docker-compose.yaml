@@ -1,0 +1,21 @@
+version: "3"
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    restart: on-failure
+
+  # docker exec -it redis-stack redis-cli
+  redis:
+    container_name: redis
+    image: redis-stack:7-alpine
+    volumes:
+      - ./redis-data/:/data
+    ports:
+      - 6379:6379
+      - 8001:8001
+    restart: on-failure
