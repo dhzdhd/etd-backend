@@ -9,6 +9,8 @@ services:
       - redis
     ports:
       - 3000:3000
+    env_file:
+      - .env
     restart: on-failure
 
   # docker exec -it redis-stack redis-cli
