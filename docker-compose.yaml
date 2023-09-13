@@ -7,12 +7,14 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - redis
+    ports:
+      - 3000:3000
     restart: on-failure
 
   # docker exec -it redis-stack redis-cli
   redis:
     container_name: redis
-    image: redis-stack:7-alpine
+    image: redis/redis-stack:latest
     volumes:
       - ./redis-data/:/data
     ports:
