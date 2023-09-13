@@ -1,27 +1,30 @@
-import { chromium, devices } from 'playwright';
+import { chromium } from 'playwright';
 import { Injectable } from '@nestjs/common';
 import { AudioResponse } from './google.interface';
 
 @Injectable()
 export class GoogleService {
-  private readonly google: null = null;
-
   async scrape(obj: string): Promise<AudioResponse> {
     const browser = await chromium.launch({
       headless: true,
-      proxy: { server: 'http://115.144.153.1:10358' },
+      //   proxy: { server: 'per-context' },
       timeout: 100000,
     });
-    const context = await browser.newContext(devices['Desktop Chrome']);
+    const context = await browser.newContext({
+      // proxy: { server: 'http://47.253.214.60:4433' },
+    });
     const page = await context.newPage();
 
-    // await page.goto('https://oxylabs.io/resources/integrations/playwright');
-
-    await page.goto(`https://www.google.com/search?q=${obj}+pronunciation/`);
+    const resp = await Promise.all([
+      page.waitForResponse(
+        (resp) => resp.status() === 206 && resp.url().includes('.mp3'),
+      ),
+      page.goto(`https://www.google.com/search?q=${obj}+pronunciation/`),
+    ]);
 
     const img = page.getByAltText('visual mouth movement');
     const svgs = await img.evaluateAll((list) =>
-      list.map((e) => e.getAttribute('data-src')),
+      list.map((e) => `https:${e.getAttribute('data-src')}`),
     );
 
     const gimg = await page.$$('g-img');
@@ -34,15 +37,13 @@ export class GoogleService {
       }
     }
 
-    console.log(durations);
-    console.log(svgs);
-
     await context.close();
     await browser.close();
 
     return {
       svgs,
       durations,
+      url: resp[0].url(),
     } satisfies AudioResponse;
   }
 }
