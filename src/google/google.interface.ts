@@ -9,5 +9,5 @@ export interface AudioResponse {
 }
 
 export interface ImageResponse {
-    image: string;
+    url: string;
 }

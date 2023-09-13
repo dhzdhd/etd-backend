@@ -1,10 +1,16 @@
 import { chromium } from 'playwright';
 import { Injectable } from '@nestjs/common';
-import { AudioResponse } from './google.interface';
+import { AudioResponse, ImageResponse } from './google.interface';
+import { PhotosWithTotalResults, createClient } from 'pexels';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class GoogleService {
-  async scrape(obj: string): Promise<AudioResponse> {
+  client = createClient(this.configService.get<string>('PEXEL_API_KEY')!);
+
+  constructor(private configService: ConfigService) {}
+
+  async scrapeAudio(obj: string): Promise<AudioResponse> {
     const browser = await chromium.launch({
       headless: true,
       //   proxy: { server: 'per-context' },
@@ -45,5 +51,13 @@ export class GoogleService {
       durations,
       url: resp[0].url(),
     } satisfies AudioResponse;
+  }
+
+  async scrapeImage(obj: string): Promise<ImageResponse> {
+    const resp = await this.client.photos.search({ query: obj, per_page: 1 }) as PhotosWithTotalResults;
+
+    return {
+        url: resp.photos[0].src.original,
+    } satisfies ImageResponse
   }
 }
