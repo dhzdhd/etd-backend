@@ -7,16 +7,17 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class GoogleService {
   client = createClient(this.configService.get<string>('PEXEL_API_KEY')!);
+  browser = (async () =>
+    await chromium.launch({
+      headless: true,
+      //   proxy: { server: 'per-context' },
+      timeout: 100000,
+    }))();
 
   constructor(private configService: ConfigService) {}
 
   async scrapeAudio(obj: string): Promise<AudioResponse> {
-    const browser = await chromium.launch({
-      headless: true,
-      //   proxy: { server: 'per-context' },
-      timeout: 100000,
-    });
-    const context = await browser.newContext({
+    const context = await (await this.browser).newContext({
       // proxy: { server: 'http://47.253.214.60:4433' },
     });
     const page = await context.newPage();
@@ -44,7 +45,6 @@ export class GoogleService {
     }
 
     await context.close();
-    await browser.close();
 
     return {
       svgs,
@@ -54,10 +54,14 @@ export class GoogleService {
   }
 
   async scrapeImage(obj: string): Promise<ImageResponse> {
-    const resp = await this.client.photos.search({ query: obj, per_page: 1 }) as PhotosWithTotalResults;
+    // Segregate through status
+    const resp = (await this.client.photos.search({
+      query: obj,
+      per_page: 1,
+    })) as PhotosWithTotalResults;
 
     return {
-        url: resp.photos[0].src.original,
-    } satisfies ImageResponse
+      url: resp.photos[0].src.original,
+    } satisfies ImageResponse;
   }
 }

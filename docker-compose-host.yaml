@@ -16,8 +16,15 @@ services:
     container_name: redis
     image: redis/redis-stack:latest
     volumes:
-      - ./redis-data/:/data
+      - ./docker_data/redis/:/data
     ports:
       - 6379:6379
       - 8001:8001
     restart: on-failure
+
+  # ffmpeg:
+  #   container_name: ffmpeg
+  #   image: linuxserver/ffmpeg:latest
+  #   volumes:
+  #     - ./docker_data/ffmpeg:/config
+  #   restart: on-failure
