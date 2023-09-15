@@ -1,27 +1,27 @@
 version: "3"
 services:
-  api:
-    container_name: api
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - redis
-    ports:
-      - 3000:3000
+  # api:
+  #   container_name: api
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - 3000:3000
+  #   env_file:
+  #     - .env
+  #   restart: on-failure
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    volumes:
+      - ./docker_data/postgres/:/var/lib/postgresql/data
     env_file:
       - .env
-    restart: on-failure
-
-  # docker exec -it redis-stack redis-cli
-  redis:
-    container_name: redis
-    image: redis/redis-stack:latest
-    volumes:
-      - ./docker_data/redis/:/data
     ports:
-      - 6379:6379
-      - 8001:8001
+      - 5432:5432
     restart: on-failure
 
   # ffmpeg:

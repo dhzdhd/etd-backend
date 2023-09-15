@@ -3,6 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { AudioResponse, ImageResponse } from './google.interface';
 import { PhotosWithTotalResults, createClient } from 'pexels';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from 'src/prisma.service';
+import { Prisma } from '@prisma/client';
+
 
 @Injectable()
 export class GoogleService {
@@ -14,9 +17,23 @@ export class GoogleService {
       timeout: 100000,
     }))();
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService, private prisma: PrismaService) {}
 
   async scrapeAudio(obj: string): Promise<AudioResponse> {
+    const cached = await this.prisma.audio.findFirst({
+      where: {
+        name: obj
+      }
+    });
+    console.log(cached);
+    if (cached !== null) {
+      return {
+        svgs: cached.svgs,
+        durations: cached.durations,
+        url: cached.url,
+      }
+    }
+
     const context = await (await this.browser).newContext({
       // proxy: { server: 'http://47.253.214.60:4433' },
     });
@@ -46,11 +63,22 @@ export class GoogleService {
 
     await context.close();
 
-    return {
+    const audioResp: AudioResponse = {
       svgs,
       durations,
       url: resp[0].url(),
-    } satisfies AudioResponse;
+    }
+
+    const audio = await this.prisma.audio.create({data: {
+      name: obj,
+      svgs: svgs,
+      durations: durations,
+      url: resp[0].url(),
+    }})
+    console.log(audio);
+
+
+    return audioResp satisfies AudioResponse;
   }
 
   async scrapeImage(obj: string): Promise<ImageResponse> {
