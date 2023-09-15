@@ -4,7 +4,6 @@ import { AudioResponse, ImageResponse } from './google.interface';
 import { PhotosWithTotalResults, createClient } from 'pexels';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma.service';
-import { Prisma } from '@prisma/client';
 
 
 @Injectable()
